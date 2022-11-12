@@ -55,7 +55,7 @@ def main():  # pragma: no cover
     # access_pco(args.pco_app_id, args.pco_token)
     yag = connect_mail(args.gmail_app_pw)
 
-    contents = ['This is the body, and here is just text http://somedomain/image.png',
+    contents = ['This is the body http://somedomain/image.png',
                 'You can find an audio file attached.']
     yag.send('printed.robots@gmail.com', 'test subject',
              contents)
