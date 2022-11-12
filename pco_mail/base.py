@@ -19,4 +19,4 @@ def access_pco(app_id, token):
     response = requests.get(PCO_URL + '/services/v2/', auth=auth)
 
     logging.info(response.status_code)
-    logging.info(response.json())
+    logging.debug(response.json())
