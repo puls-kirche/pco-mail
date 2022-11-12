@@ -51,7 +51,7 @@ def access_pco(app_id, token):
         name_list.append({"person": [{"id": identifier},
                                      {"name": name},
                                      {"mail": mail},
-                                     {"teams": teams}]})
+                                     {"teams": "NA"}]})
 
     # print(name_list)
 
