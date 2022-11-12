@@ -2,14 +2,22 @@
 Base functionalities to access pco and send mails
 """
 
-import logging
+# import logging
 import json
 import requests
+import yagmail
 from requests.auth import HTTPBasicAuth
 
 # example constant variable
 NAME = "pco_mail"
 PCO_URL = "https://api.planningcenteronline.com"
+
+
+def connect_mail(app_pw):
+    """
+    send mails via gmail
+    """
+    return yagmail.SMTP('puls.kirche', app_pw)
 
 
 def access_pco(app_id, token):
@@ -18,30 +26,32 @@ def access_pco(app_id, token):
     """
     auth = HTTPBasicAuth(app_id, token)
 
-    # response = requests.get(PCO_URL + "/services/v2/", auth=auth, timeout=1000)
+    # response = requests.get(PCO_URL + "/services/v2/",
+    #                         auth=auth, timeout=1000)
 
     # logging.info(response.status_code)
     # logging.debug(response.json())
 
-    # response = requests.get(PCO_URL + "/people/v2/people",
-    #                         auth=auth, timeout=1000)
+    response = requests.get(PCO_URL + "/people/v2/people",
+                            auth=auth, timeout=1000)
 
-    # name_list = []
-    # res = json.loads(response.text)
-    # for nested_array in res['data']:
-    #     identifier = nested_array['id']
-    #     name = nested_array['attributes']['name']
+    name_list = []
+    res = json.loads(response.text)
+    for nested_array in res['data']:
+        identifier = nested_array['id']
+        name = nested_array['attributes']['name']
 
-    #     response = requests.get(PCO_URL + "/people/v2/people/"
-    #                             + nested_array['id'] + "/emails",
-    #                             auth=auth, timeout=1000)
+        response = requests.get(PCO_URL + "/people/v2/people/"
+                                + nested_array['id'] + "/emails",
+                                auth=auth, timeout=1000)
 
-    #     res = json.loads(response.text)
-    #     for nested_mail in res['data']:
-    #         mail = nested_mail['attributes']['address']
-    #     name_list.append({"person": [{"id": identifier},
-    #                                  {"name": name},
-    #                                  {"mail": mail}]})
+        res = json.loads(response.text)
+        for nested_mail in res['data']:
+            mail = nested_mail['attributes']['address']
+        name_list.append({"person": [{"id": identifier},
+                                     {"name": name},
+                                     {"mail": mail},
+                                     {"teams": teams}]})
 
     # print(name_list)
 
@@ -75,3 +85,5 @@ def access_pco(app_id, token):
 
     # logging.info(response.status_code)
     # print(json.dumps(response.json()))
+
+    return name_list, plan_list

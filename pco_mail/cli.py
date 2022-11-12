@@ -9,7 +9,7 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
-from .base import access_pco
+from .base import access_pco, connect_mail
 
 
 def _parse_arguments():
@@ -18,8 +18,9 @@ def _parse_arguments():
         description="Uses PCO to send invitations via mail",
         epilog="Made with ♥",
     )
-    parser.add_argument("-t", "--token")
-    parser.add_argument("-a", "--app-id")
+    parser.add_argument("-t", "--pco-token")
+    parser.add_argument("-a", "--pco-app-id")
+    parser.add_argument("-g", "--gmail-app-pw")
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser.parse_args()
 
@@ -50,4 +51,10 @@ def main():  # pragma: no cover
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    access_pco(args.app_id, args.token)
+    # access_pco(args.pco_app_id, args.pco_token)
+    yag = connect_mail(args.gmail_app_pw)
+
+    contents = ['This is the body, and here is just text http://somedomain/image.png',
+                'You can find an audio file attached.']
+    yag.send('Jojo Tests <johannes.jeising@gmail.com>', 'test subject',
+             contents)
