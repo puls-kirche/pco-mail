@@ -41,7 +41,6 @@ def main():  # pragma: no cover
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.ERROR)
     
     logging.info(args)
-    logging.info("This will do something")
