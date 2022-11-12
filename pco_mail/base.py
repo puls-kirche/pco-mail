@@ -1,17 +1,22 @@
-"""
-pco_mail base module.
+'''
+Base functionalities to access pco and send mails
+'''
 
-This is the principal module of the pco_mail project.
-here you put your main classes and objects.
-
-Be creative! do whatever you want!
-
-If you want to replace this with a Flask application run:
-
-    $ make init
-
-and then choose `flask` as template.
-"""
+import logging
+import requests
+from requests.auth import HTTPBasicAuth
 
 # example constant variable
 NAME = "pco_mail"
+PCO_URL = 'https://api.planningcenteronline.com'
+
+def access_pco(app_id, token):
+    '''
+    access pco for testing
+    '''
+    auth = HTTPBasicAuth(app_id, token)
+
+    response = requests.get(PCO_URL + '/services/v2/', auth=auth)
+
+    logging.info(response.status_code)
+    logging.info(response.json())

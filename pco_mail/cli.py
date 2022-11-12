@@ -9,6 +9,7 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
+from .base import access_pco
 
 
 def _parse_arguments():
@@ -17,6 +18,7 @@ def _parse_arguments():
                     description = 'Uses PCO to send invitations via mail',
                     epilog = 'Made with ♥')
     parser.add_argument('-t', '--token')
+    parser.add_argument('-a', '--app-id')
     parser.add_argument('-v', '--verbose',
                         action='store_true')
     return parser.parse_args()
@@ -46,4 +48,4 @@ def main():  # pragma: no cover
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    logging.info(args)
+    access_pco(args.app_id, args.token)
