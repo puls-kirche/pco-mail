@@ -14,20 +14,22 @@ from .base import access_pco
 
 def _parse_arguments():
     parser = argparse.ArgumentParser(
-                    prog = 'PCO Mail',
-                    description = 'Uses PCO to send invitations via mail',
-                    epilog = 'Made with ♥')
+                    prog='PCO Mail',
+                    description='Uses PCO to send invitations via mail',
+                    epilog='Made with ♥')
     parser.add_argument('-t', '--token')
     parser.add_argument('-a', '--app-id')
     parser.add_argument('-v', '--verbose',
                         action='store_true')
     return parser.parse_args()
 
+
 def _setup_logging(verbose: bool):
     if verbose:
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.ERROR)
+
 
 def main():  # pragma: no cover
     """
