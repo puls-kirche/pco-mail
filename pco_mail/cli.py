@@ -7,7 +7,18 @@ Be creative! do whatever you want!
 - Start a web application
 - Import things from your .base module
 """
+import argparse
+import logging
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+                    prog = 'PCO Mail',
+                    description = 'Uses PCO to send invitations via mail',
+                    epilog = 'Made with ♥')
+    parser.add_argument('-t', '--token')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true')
+    return parser.parse_args()
 
 def main():  # pragma: no cover
     """
@@ -25,4 +36,12 @@ def main():  # pragma: no cover
         * List all available tasks
         * Run an application (Flask, FastAPI, Django, etc.)
     """
-    print("This will do something")
+    args = parse_arguments()
+    
+    if args.verbose:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    
+    logging.info(args)
+    logging.info("This will do something")
