@@ -10,7 +10,8 @@ Be creative! do whatever you want!
 import argparse
 import logging
 
-def parse_arguments():
+
+def _parse_arguments():
     parser = argparse.ArgumentParser(
                     prog = 'PCO Mail',
                     description = 'Uses PCO to send invitations via mail',
@@ -19,6 +20,12 @@ def parse_arguments():
     parser.add_argument('-v', '--verbose',
                         action='store_true')
     return parser.parse_args()
+
+def _setup_logging(verbose: bool):
+    if verbose:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.ERROR)
 
 def main():  # pragma: no cover
     """
@@ -36,11 +43,7 @@ def main():  # pragma: no cover
         * List all available tasks
         * Run an application (Flask, FastAPI, Django, etc.)
     """
-    args = parse_arguments()
-    
-    if args.verbose:
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.ERROR)
-    
+    args = _parse_arguments()
+    _setup_logging(args.verbose)
+
     logging.info(args)
