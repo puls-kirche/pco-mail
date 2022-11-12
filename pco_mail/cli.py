@@ -56,5 +56,5 @@ def main():  # pragma: no cover
 
     contents = ['This is the body, and here is just text http://somedomain/image.png',
                 'You can find an audio file attached.']
-    yag.send(to = {'printed.robots@gmail.com' : 'Test Name'}, 'test subject',
+    yag.send('printed.robots@gmail.com', 'test subject',
              contents)
