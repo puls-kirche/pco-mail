@@ -1,75 +1,100 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2015 
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+# https://github.com/havannavar/python-calendar-invite/blob/master/LICENSE
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# encoding=utf8  
+'''
+@author: sats
+'''
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email.Utils import COMMASPACE, formatdate
+
+from email.utils import formatdate
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+
 from email import Encoders
-import os
-import datetime
+import os, datetime
 
-CRLF = "\r\n"
-login = "yourloging@googlemail.com"
-password = "yourpassword"
-attendees = ["first@gmail.com",     "second@example.com", "third@hotmail.com"]
-organizer = "ORGANIZER;CN=organiser:mailto:first"+CRLF+" @gmail.com"
-fro = "nickname <first@gmail.com>"
+config = fileutil.social
 
-ddtstart = datetime.datetime.now()
-dtoff = datetime.timedelta(days=1)
-dur = datetime.timedelta(hours=1)
-ddtstart = ddtstart + dtoff
-dtend = ddtstart + dur
-dtstamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
-dtstart = ddtstart.strftime("%Y%m%dT%H%M%SZ")
-dtend = dtend.strftime("%Y%m%dT%H%M%SZ")
+def send_invite(param):
+    CRLF = "\r\n"
+    attendees = param['to']
+    attendees = ""
+    try:
+        for att in param['to']:
+            attendees += "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="+att+";X-NUM-GUESTS=0:mailto:"+att+CRLF
+    except Exception as e:
+        print e
+    fro = "Satish <noreply@abc.com>"
+    
+    msg = MIMEMultipart('mixed')
+    msg['Reply-To']=fro
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = 'Satish:Meeting invitation from Satihs'
+    msg['From'] = fro
+    msg['To'] = attendees
 
-description = "DESCRIPTION: test invitation from pyICSParser"+CRLF
-attendee = ""
-for att in attendees:
-    attendee += "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-    PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE" + \
-        CRLF+" ;CN="+att+";X-NUM-GUESTS=0:"+CRLF+" mailto:"+att+CRLF
-ical = "BEGIN:VCALENDAR"+CRLF+"PRODID:pyICSParser" + \
-    CRLF+"VERSION:2.0"+CRLF+"CALSCALE:GREGORIAN"+CRLF
-ical += "METHOD:REQUEST"+CRLF+"BEGIN:VEVENT"+CRLF+"DTSTART:"+dtstart + \
-    CRLF+"DTEND:"+dtend+CRLF+"DTSTAMP:"+dtstamp+CRLF+organizer+CRLF
-ical += "UID:FIXMEUID"+dtstamp+CRLF
-ical += attendee+"CREATED:"+dtstamp+CRLF+description+"LAST-MODIFIED:" + \
-    dtstamp+CRLF+"LOCATION:"+CRLF+"SEQUENCE:0"+CRLF+"STATUS:CONFIRMED"+CRLF
-ical += "SUMMARY:test "+ddtstart.strftime("%Y%m%d @ %H:%M") + \
-    CRLF+"TRANSP:OPAQUE"+CRLF+"END:VEVENT"+CRLF+"END:VCALENDAR"+CRLF
+    __location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    f= os.path.join(__location__, 'invite.ics')   
+    ics_content = open(f).read()
+    try:
+        replaced_contents = ics_content.replace('startDate', param['startDate'])
+        replaced_contents = replaced_contents.replace('endDate', param['endDate'])
+        replaced_contents = replaced_contents.replace('telephonic', param['location'])
+        replaced_contents = replaced_contents.replace('now', datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ"))
+    except Exception as e:
+        log.warn(e)
+    if param.get('describe') is not None:
+        replaced_contents = replaced_contents.replace('describe', param.get('describe'))
+    else:
+        replaced_contents = replaced_contents.replace('describe', '')
+    replaced_contents = replaced_contents.replace('attend',  msg['To'])
+    replaced_contents = replaced_contents.replace('subject',  param['subject'])
+    part_email = MIMEText(replaced_contents,'calendar;method=REQUEST')
 
-eml_body = "Email body visible in the invite of outlook and outlook.com but not google calendar"
-eml_body_bin = "This is the email body in binary - two steps"
-msg = MIMEMultipart('mixed')
-msg['Reply-To'] = fro
-msg['Date'] = formatdate(localtime=True)
-msg['Subject'] = "pyICSParser invite"+dtstart
-msg['From'] = fro
-msg['To'] = ",".join(attendees)
+    
+    msgAlternative = MIMEMultipart('alternative')
+   
+    
+    ical_atch = MIMEBase('text/calendar',' ;name="%s"'%"invitation.ics")
+    ical_atch.set_payload(replaced_contents)
+    Encoders.encode_base64(ical_atch)
+    ical_atch.add_header('Content-Disposition', 'attachment; filename="%s"'%f)
+    
 
-part_email = MIMEText(eml_body, "html")
-part_cal = MIMEText(ical, 'calendar;method=REQUEST')
-
-msgAlternative = MIMEMultipart('alternative')
-msg.attach(msgAlternative)
-
-ical_atch = MIMEBase('application/ics', ' ;name="%s"' % ("invite.ics"))
-ical_atch.set_payload(ical)
-Encoders.encode_base64(ical_atch)
-ical_atch.add_header('Content-Disposition',
-                     'attachment; filename="%s"' % ("invite.ics"))
-
-eml_atch = MIMEBase('text/plain', '')
-Encoders.encode_base64(eml_atch)
-eml_atch.add_header('Content-Transfer-Encoding', "")
-
-msgAlternative.attach(part_email)
-msgAlternative.attach(part_cal)
-
-mailServer = smtplib.SMTP('smtp.gmail.com', 587)
-mailServer.ehlo()
-mailServer.starttls()
-mailServer.ehlo()
-mailServer.login(login, password)
-mailServer.sendmail(fro, attendees, msg.as_string())
-mailServer.close()
+    
+    msgAlternative.attach(part_email)
+    msgAlternative.attach(ical_atch)
+    msg.attach(msgAlternative)
+    mailServer = smtplib.SMTP('smtp.mandrillapp.com', 587)
+    mailServer.ehlo()
+    mailServer.starttls()
+    mailServer.ehlo()
+    mailServer.login('smtp-username', 'smtp-password')
+    mailServer.sendmail(fro, param['to'], msg.as_string())
+    mailServer.close()
