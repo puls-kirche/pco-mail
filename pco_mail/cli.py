@@ -58,13 +58,21 @@ def main():  # pragma: no cover
 
     yag = connect_mail(args.gmail_app_pw)
 
-    contents = ['There are ', str(len(names)),
-                ' people and ', str(len(plans)),
-                ' plans.\nThe band leaders are:\n']
+    contents = [
+        "There are ",
+        str(len(names)),
+        " people and ",
+        str(len(plans)),
+        " plans.\n\nThe band leaders are:\n",
+    ]
 
     for person_id in band_leader_ids:
-        contents.append("- " + names[person_id]["name"] +
-                        " (" + names[person_id]["mail"] + ")\n")
+        contents.append(
+            "- "
+            + names[person_id]["name"]
+            + " ("
+            + names[person_id]["mail"]
+            + ")\n"
+        )
 
-    yag.send('printed.robots@gmail.com', 'pco mail test',
-             contents)
+    yag.send("printed.robots@gmail.com", "pco mail test", contents)
