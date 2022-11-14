@@ -9,8 +9,7 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
-from .base import connect_mail
-# from .base import access_pco
+from .base import access_pco, connect_mail
 
 
 def _parse_arguments():
@@ -52,10 +51,20 @@ def main():  # pragma: no cover
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    # access_pco(args.pco_app_id, args.pco_token)
+    names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
+
+    print("Names: " + len(names))
+    print("Plans: " + len(plans))
+
     yag = connect_mail(args.gmail_app_pw)
 
-    contents = ['This is the body http://somedomain/image.png',
-                'You can find an audio file attached.']
-    yag.send('printed.robots@gmail.com', 'test subject',
+    contents = ['There are ', len(names),
+                ' people and ', len(plans),
+                ' plans.\nThe band leaders are:\n']
+
+    for person_id in band_leader_ids:
+        contents.append("- " + names[person_id]["name"] +
+                        " (" + names[person_id]["mail"] + ")\n")
+
+    yag.send('printed.robots@gmail.com', 'pco mail test',
              contents)
