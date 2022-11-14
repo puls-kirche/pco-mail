@@ -53,13 +53,13 @@ def main():  # pragma: no cover
 
     names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
 
-    print("Names: " + len(names))
-    print("Plans: " + len(plans))
+    print("Names: ", len(names))
+    print("Plans: ", len(plans))
 
     yag = connect_mail(args.gmail_app_pw)
 
-    contents = ['There are ', len(names),
-                ' people and ', len(plans),
+    contents = ['There are ', str(len(names)),
+                ' people and ', str(len(plans)),
                 ' plans.\nThe band leaders are:\n']
 
     for person_id in band_leader_ids:
