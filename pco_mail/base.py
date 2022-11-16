@@ -40,7 +40,7 @@ def connect_mail(app_pw):
     """
     send mails via gmail
     """
-    return yagmail.SMTP("puls.kirche", app_pw)
+    return yagmail.SMTP({"puls.kirche@gmail.com": "PULS Kirche"}, app_pw)
 
 
 class MailStub:
@@ -83,8 +83,12 @@ def get_votd_html_mail(name):
     )
     inliner = css_inline.CSSInliner(remove_style_tags=True)
     inlined_content = inliner.inline(mail_content)
-    entities_content = inlined_content.encode("ascii", "xmlcharrefreplace")
-    return entities_content
+    entities_content = (
+        inlined_content.encode("ascii", "xmlcharrefreplace")
+        .decode("utf-8")
+        .replace("\n", "")
+    )
+    return verse["ref"], entities_content
 
 
 def send_votd(yag, names):
@@ -94,14 +98,12 @@ def send_votd(yag, names):
     send_messages = 0
     for person in names.values():
         if person["votd"]:
-            html = get_votd_html_mail(person["first_name"])
-            with open("assets/inline_mail.html", "bw") as f:
-                f.write(html)
+            ref, html = get_votd_html_mail(person["first_name"])
             recipient = {person["mail"]: person["name"]}
             yag.send(
                 to=recipient,
-                subject="Verse of the Day",
-                contents=["assets/inline_mail.html"],
+                subject="Verse of the Day - " + ref,
+                contents=[html],
             )
             send_messages += 1
     print("Send " + str(send_messages) + " 'Verse of the Day' messages")

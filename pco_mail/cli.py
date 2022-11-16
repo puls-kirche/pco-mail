@@ -9,7 +9,12 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
-from .base import access_pco, connect_mail, send_votd, MailStub
+from .base import (
+    access_pco,
+    connect_mail,
+    send_votd,
+    MailStub,
+)
 
 
 def _parse_arguments():
