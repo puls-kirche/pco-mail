@@ -22,4 +22,4 @@ jobs:
       - name: Install project
         run: make install
       - name: Run main
-        run: python -m pco_mail -a ${{ secrets.PCO_APP_ID_JOHANNES }} -t ${{ secrets.PCO_TOKEN_JOHANNES }} -g ${{ secrets.GMAIL_APP_PASSWORD }} --votd --dry-run
+        run: python -m pco_mail -a ${{ secrets.PCO_APP_ID_JOHANNES }} -t ${{ secrets.PCO_TOKEN_JOHANNES }} -g ${{ secrets.GMAIL_APP_PASSWORD }} --votd
