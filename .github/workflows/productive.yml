@@ -1,0 +1,26 @@
+name: PCO Mail
+
+on:
+  schedule:
+    - cron:
+      - 0 10 * * 7
+
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Send verse of the day mails'
+
+jobs:
+  pco-mail:
+    strategy:
+      fail-fast: false
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install project
+        run: make install
+      - name: Run main
+        run: python -m pco_mail -a ${{ secrets.PCO_APP_ID_JOHANNES }} -t ${{ secrets.PCO_TOKEN_JOHANNES }} -g ${{ secrets.GMAIL_APP_PASSWORD }} --dry-run

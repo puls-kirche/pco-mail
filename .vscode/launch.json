@@ -14,7 +14,7 @@
                      "-g", "${env:GMAIL_APP_PASSWORD}",
                      "-v",
                      "--votd",
-                     "--dry"],
+                     "--dry-run"],
             "console": "integratedTerminal",
             "justMyCode": true
         }
