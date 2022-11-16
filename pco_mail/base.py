@@ -2,13 +2,13 @@
 Base functionalities to access pco and send mails
 """
 
+import json
+import logging
+import urllib.request
 from functools import lru_cache
 from requests.auth import HTTPBasicAuth
 from jinja2 import Template
-import json
-import logging
 import requests
-import urllib.request
 import yagmail
 import css_inline
 
