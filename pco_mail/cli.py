@@ -9,7 +9,7 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
-from .base import access_pco, connect_mail, get_votd_html_mail
+from .base import access_pco, connect_mail, send_votd, MailStub
 
 
 def _parse_arguments():
@@ -22,6 +22,8 @@ def _parse_arguments():
     parser.add_argument("-a", "--pco-app-id")
     parser.add_argument("-g", "--gmail-app-pw")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("--votd", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
 
@@ -29,7 +31,7 @@ def _setup_logging(verbose: bool):
     if verbose:
         logging.basicConfig(level=logging.INFO)
     else:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.WARNING)
 
 
 def main():  # pragma: no cover
@@ -51,35 +53,23 @@ def main():  # pragma: no cover
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    # names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
+    names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
 
-    # print("Names: ", len(names))
-    # print("Plans: ", len(plans))
+    print("Names: ", len(names))
+    print("Plans: ", len(plans))
+    print("Band Leaders: ", len(band_leader_ids))
 
-    yag = connect_mail(args.gmail_app_pw)
+    if not args.dry_run:
+        try:
+            yag = connect_mail(args.gmail_app_pw)
+        except Exception as login_error:
+            logging.error("Yag:Login  Failed to log in")
+            logging.critical(login_error, exc_info=True)
+    else:
+        yag = MailStub()
+        logging.warning("Yag:DryRun  This is a dry run. No mail will be send")
 
-    # contents = [
-    #     "There are ",
-    #     str(len(names)),
-    #     " people and ",
-    #     str(len(plans)),
-    #     " plans.\n\nThe band leaders are:\n",
-    # ]
-
-    # for person_id in band_leader_ids:
-    #     contents.append(
-    #         "- "
-    #         + names[person_id]["name"]
-    #         + " ("
-    #         + names[person_id]["mail"]
-    #         + ")\n"
-    #     )
-    # body = 'This is obviously the body'
     # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
 
-    html = get_votd_html_mail("Johannes")
-    with open('data/inline_mail.html', 'bw') as f:
-        f.write(html)
-
-    yag.send(to="printed.robots@gmail.com", subject="Verse of the Day",
-             contents=["data/inline_mail.html"])
+    if args.votd:
+        send_votd(yag, names)

@@ -12,7 +12,9 @@
             "args": ["-a", "${env:PCO_APP_ID_JOHANNES}",
                      "-t", "${env:PCO_TOKEN_JOHANNES}",
                      "-g", "${env:GMAIL_APP_PASSWORD}",
-                     "-v"],
+                     "-v",
+                     "--votd",
+                     "--dry"],
             "console": "integratedTerminal",
             "justMyCode": true
         }

@@ -43,6 +43,19 @@ def connect_mail(app_pw):
     return yagmail.SMTP("puls.kirche", app_pw)
 
 
+class MailStub:
+    """
+    Stub the yag
+    """
+
+    def send(self, to, subject, contents):
+        """
+        Function stub to test functionalities
+        """
+        message = "Yag:Send:Mail  --dry-run  " + str(to) + " '" + str(subject) + "' " + str(contents)
+        logging.info(message)
+
+
 def get_votd_html_mail(name):
     """
     get html content to send via mail
@@ -63,15 +76,40 @@ def get_votd_html_mail(name):
     return entities_content
 
 
+def send_votd(yag, names):
+    """
+    send mails to all #votd accounts
+    """
+    send_messages = 0
+    for person in names.values():
+        if person["votd"]:
+            html = get_votd_html_mail(person["first_name"])
+            with open('data/inline_mail.html', 'bw') as f:
+                f.write(html)
+            recipient = {person["mail"]: person["name"]}
+            yag.send(to=recipient, subject="Verse of the Day",
+                     contents=["data/inline_mail.html"])
+            send_messages += 1
+    print("Send " + str(send_messages) + " 'Verse of the Day' messages")
+
+
 def _get_names(auth) -> dict:
     names = {}
     response = requests.get(
-        PCO_URL + "/people/v2/people?per_page=200", auth=auth, timeout=1000
+        PCO_URL + "/services/v2/people?per_page=200", auth=auth, timeout=1000
     )
     res = json.loads(response.text)
     for nested_array in res["data"]:
         identifier = nested_array["id"]
-        name = nested_array["attributes"]["name"]
+        name = nested_array["attributes"]["full_name"]
+        first_name = nested_array["attributes"]["first_name"]
+        notes = nested_array["attributes"]["notes"]
+
+        is_votd = False
+
+        if notes is not None:
+            if "#votd" in notes:
+                is_votd = True
 
         response = requests.get(
             PCO_URL + "/people/v2/people/" + nested_array["id"] + "/emails",
@@ -82,8 +120,8 @@ def _get_names(auth) -> dict:
         res = json.loads(response.text)
         for nested_mail in res["data"]:
             mail = nested_mail["attributes"]["address"]
-        names[identifier] = {"name": name, "mail": mail, "teams": []}
-        logging.info("Person  %s", identifier)
+        names[identifier] = {"name": name, "first_name": first_name, "mail": mail, "votd": is_votd, "teams": []}
+        logging.info("PCO:Person  %s", identifier)
     return names
 
 
@@ -155,7 +193,7 @@ def _get_plans(auth) -> dict:
                 "date": plan_date,
                 "plan": plan_title,
             }
-            logging.info("%s,  %s,  %s", series_title, plan_title, plan_date)
+            logging.info("PCO:Series  %s,  %s,  %s", series_title, plan_title, plan_date)
     return plans
 
 
@@ -177,7 +215,7 @@ def access_pco(app_id, token):
     band_leader_ids = _get_band_leaders(names)
 
     for person_id in band_leader_ids:
-        logging.info("Band Leader: %s", names[person_id]["name"])
+        logging.info("PCO:BandLead  Band Leader: %s", names[person_id]["name"])
 
     plans = _get_plans(auth)
 
