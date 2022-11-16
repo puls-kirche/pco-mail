@@ -1,4 +1,4 @@
-name: PCO Mail
+name: 'PCO Mail'
 
 on:
   schedule:
