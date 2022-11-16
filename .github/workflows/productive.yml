@@ -2,8 +2,7 @@ name: PCO Mail
 
 on:
   schedule:
-    - cron:
-      - 0 10 * * 7
+    - cron: '0 10 * * 7'
 
   workflow_dispatch:
     inputs:
