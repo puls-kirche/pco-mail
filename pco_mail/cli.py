@@ -78,8 +78,8 @@ def main():  # pragma: no cover
     # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
 
     html = get_votd_html_mail("Johannes")
-    with open('data/inline_mail.html', 'w', encoding="utf-8") as f:
+    with open('data/inline_mail.html', 'bw') as f:
         f.write(html)
 
-    yag.send(to="printed.robots@gmail.com", subject="pco mail test",
+    yag.send(to="printed.robots@gmail.com", subject="Verse of the Day",
              contents=["data/inline_mail.html"])

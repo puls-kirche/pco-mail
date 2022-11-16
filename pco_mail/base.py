@@ -58,8 +58,9 @@ def get_votd_html_mail(name):
     mail_content = template.render(name=name, verse=verse["text"],
                                    location=verse["ref"], link=verse["link"])
     inliner = css_inline.CSSInliner(remove_style_tags=True)
-    inlined_mail_content = inliner.inline(mail_content)
-    return inlined_mail_content
+    inlined_content = inliner.inline(mail_content)
+    entities_content = inlined_content.encode('ascii', 'xmlcharrefreplace')
+    return entities_content
 
 
 def _get_names(auth) -> dict:
