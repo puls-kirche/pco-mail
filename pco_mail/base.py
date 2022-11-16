@@ -84,11 +84,11 @@ def send_votd(yag, names):
     for person in names.values():
         if person["votd"]:
             html = get_votd_html_mail(person["first_name"])
-            with open('data/inline_mail.html', 'bw') as f:
+            with open('assets/inline_mail.html', 'bw') as f:
                 f.write(html)
             recipient = {person["mail"]: person["name"]}
             yag.send(to=recipient, subject="Verse of the Day",
-                     contents=["data/inline_mail.html"])
+                     contents=["assets/inline_mail.html"])
             send_messages += 1
     print("Send " + str(send_messages) + " 'Verse of the Day' messages")
 
