@@ -52,7 +52,14 @@ class MailStub:
         """
         Function stub to test functionalities
         """
-        message = "Yag:Send:Mail  --dry-run  " + str(to) + " '" + str(subject) + "' " + str(contents)
+        message = (
+            "Yag:Send:Mail  --dry-run  "
+            + str(to)
+            + " '"
+            + str(subject)
+            + "' "
+            + str(contents)
+        )
         logging.info(message)
 
 
@@ -60,7 +67,7 @@ def get_votd_html_mail(name):
     """
     get html content to send via mail
     """
-    votd_template_file = 'assets/votd_template.html'
+    votd_template_file = "assets/votd_template.html"
 
     verse = get_verse_of_the_day()
 
@@ -68,11 +75,15 @@ def get_votd_html_mail(name):
         template_text = file.read()
 
     template = Template(template_text)
-    mail_content = template.render(name=name, verse=verse["text"],
-                                   location=verse["ref"], link=verse["link"])
+    mail_content = template.render(
+        name=name,
+        verse=verse["text"],
+        location=verse["ref"],
+        link=verse["link"],
+    )
     inliner = css_inline.CSSInliner(remove_style_tags=True)
     inlined_content = inliner.inline(mail_content)
-    entities_content = inlined_content.encode('ascii', 'xmlcharrefreplace')
+    entities_content = inlined_content.encode("ascii", "xmlcharrefreplace")
     return entities_content
 
 
@@ -84,11 +95,14 @@ def send_votd(yag, names):
     for person in names.values():
         if person["votd"]:
             html = get_votd_html_mail(person["first_name"])
-            with open('assets/inline_mail.html', 'bw') as f:
+            with open("assets/inline_mail.html", "bw") as f:
                 f.write(html)
             recipient = {person["mail"]: person["name"]}
-            yag.send(to=recipient, subject="Verse of the Day",
-                     contents=["assets/inline_mail.html"])
+            yag.send(
+                to=recipient,
+                subject="Verse of the Day",
+                contents=["assets/inline_mail.html"],
+            )
             send_messages += 1
     print("Send " + str(send_messages) + " 'Verse of the Day' messages")
 
@@ -120,7 +134,13 @@ def _get_names(auth) -> dict:
         res = json.loads(response.text)
         for nested_mail in res["data"]:
             mail = nested_mail["attributes"]["address"]
-        names[identifier] = {"name": name, "first_name": first_name, "mail": mail, "votd": is_votd, "teams": []}
+        names[identifier] = {
+            "name": name,
+            "first_name": first_name,
+            "mail": mail,
+            "votd": is_votd,
+            "teams": [],
+        }
         logging.info("PCO:Person  %s", identifier)
     return names
 
@@ -193,7 +213,9 @@ def _get_plans(auth) -> dict:
                 "date": plan_date,
                 "plan": plan_title,
             }
-            logging.info("PCO:Series  %s,  %s,  %s", series_title, plan_title, plan_date)
+            logging.info(
+                "PCO:Series  %s,  %s,  %s", series_title, plan_title, plan_date
+            )
     return plans
 
 
