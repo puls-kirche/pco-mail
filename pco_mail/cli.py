@@ -9,7 +9,7 @@ Be creative! do whatever you want!
 """
 import argparse
 import logging
-from .base import access_pco, connect_mail
+from .base import access_pco, connect_mail, get_votd_html_mail
 
 
 def _parse_arguments():
@@ -51,28 +51,35 @@ def main():  # pragma: no cover
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
+    # names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
 
-    print("Names: ", len(names))
-    print("Plans: ", len(plans))
+    # print("Names: ", len(names))
+    # print("Plans: ", len(plans))
 
     yag = connect_mail(args.gmail_app_pw)
 
-    contents = [
-        "There are ",
-        str(len(names)),
-        " people and ",
-        str(len(plans)),
-        " plans.\n\nThe band leaders are:\n",
-    ]
+    # contents = [
+    #     "There are ",
+    #     str(len(names)),
+    #     " people and ",
+    #     str(len(plans)),
+    #     " plans.\n\nThe band leaders are:\n",
+    # ]
 
-    for person_id in band_leader_ids:
-        contents.append(
-            "- "
-            + names[person_id]["name"]
-            + " ("
-            + names[person_id]["mail"]
-            + ")\n"
-        )
+    # for person_id in band_leader_ids:
+    #     contents.append(
+    #         "- "
+    #         + names[person_id]["name"]
+    #         + " ("
+    #         + names[person_id]["mail"]
+    #         + ")\n"
+    #     )
+    # body = 'This is obviously the body'
+    # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
 
-    yag.send("printed.robots@gmail.com", "pco mail test", contents)
+    html = get_votd_html_mail("Johannes")
+    with open('data/inline_mail.html', 'w', encoding="utf-8") as f:
+        f.write(html)
+
+    yag.send(to="printed.robots@gmail.com", subject="pco mail test",
+             contents=["data/inline_mail.html"])

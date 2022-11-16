@@ -2,15 +2,38 @@
 Base functionalities to access pco and send mails
 """
 
-import logging
-import json
-import requests
-import yagmail
+from functools import lru_cache
 from requests.auth import HTTPBasicAuth
+from jinja2 import Template
+import json
+import logging
+import requests
+import urllib.request
+import yagmail
+import css_inline
+
 
 # example constant variable
 NAME = "pco_mail"
 PCO_URL = "https://api.planningcenteronline.com"
+BIBLEGATEWAY = "https://www.biblegateway.com/votd/get/?format=json&version="
+
+
+@lru_cache(maxsize=None)
+def get_verse_of_the_day(translation: str = "NGU-DE") -> dict:
+    """
+    get verse of the day from biblegateway.com
+    """
+
+    with urllib.request.urlopen(BIBLEGATEWAY + translation) as url:
+        verse_json = json.load(url)
+
+    verse = {}
+    verse["text"] = verse_json["votd"]["content"]
+    verse["ref"] = verse_json["votd"]["display_ref"]
+    verse["link"] = verse_json["votd"]["permalink"]
+
+    return verse
 
 
 def connect_mail(app_pw):
@@ -18,6 +41,25 @@ def connect_mail(app_pw):
     send mails via gmail
     """
     return yagmail.SMTP("puls.kirche", app_pw)
+
+
+def get_votd_html_mail(name):
+    """
+    get html content to send via mail
+    """
+    votd_template_file = 'assets/votd_template.html'
+
+    verse = get_verse_of_the_day()
+
+    with open(votd_template_file, encoding="utf-8") as file:
+        template_text = file.read()
+
+    template = Template(template_text)
+    mail_content = template.render(name=name, verse=verse["text"],
+                                   location=verse["ref"], link=verse["link"])
+    inliner = css_inline.CSSInliner(remove_style_tags=True)
+    inlined_mail_content = inliner.inline(mail_content)
+    return inlined_mail_content
 
 
 def _get_names(auth) -> dict:

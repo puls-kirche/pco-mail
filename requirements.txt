@@ -6,3 +6,5 @@
 requests
 types-requests
 yagmail
+jinja2
+css_inline
