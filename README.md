@@ -1,6 +1,7 @@
 # pco_mail
 
 [![CI](https://github.com/puls-kirche/pco-mail/actions/workflows/main.yml/badge.svg)](https://github.com/puls-kirche/pco-mail/actions/workflows/main.yml)
+[![PCO Mail](https://github.com/puls-kirche/pco-mail/actions/workflows/productive.yml/badge.svg)](https://github.com/puls-kirche/pco-mail/actions/workflows/productive.yml)
 
 Awesome pco_mail created by puls-kirche
 
