@@ -94,8 +94,10 @@ def main():  # pragma: no cover
     mail = Mail("PULS-Kirche-fuer-Schweinfurt", "puls.kirche@gmail.com")
 
     if args.dry_run:
+        print("--dry-run no mails will be send")
         mail.set_dry_run(True)
     else:
+        print("Activate mail account")
         mail.establish_connection(args.gmail_app_pw)
 
     # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
