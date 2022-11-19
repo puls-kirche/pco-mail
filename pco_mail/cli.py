@@ -1,34 +1,48 @@
-"""CLI interface for pco_mail project.
-
-Be creative! do whatever you want!
-
-- Install click or typer and create a CLI app
-- Use builtin argparse
-- Start a web application
-- Import things from your .base module
+"""
+CLI interface for pco_mail project.
 """
 import argparse
 import logging
-from .base import (
-    access_pco,
-    connect_mail,
-    send_votd,
-    MailStub,
-)
+from .base import PCO, Mail
 
 
 def _parse_arguments():
     parser = argparse.ArgumentParser(
         prog="PCO Mail",
         description="Uses PCO to send invitations via mail",
-        epilog="Made with ♥",
+        epilog="Made for ✝ is ♥",
     )
-    parser.add_argument("-t", "--pco-token")
-    parser.add_argument("-a", "--pco-app-id")
-    parser.add_argument("-g", "--gmail-app-pw")
-    parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("--votd", action="store_true")
-    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "-t",
+        "--pco-token",
+        help="This token is a secret that allows to access PCO",
+    )
+    parser.add_argument(
+        "-a",
+        "--pco-app-id",
+        help="The 'APP Id' is the user name that is needed to access PCO",
+    )
+    parser.add_argument(
+        "-g",
+        "--gmail-app-pw",
+        help="The GMail app password to access a gmail account",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Display verbose message. Do not activate in CI",
+    )
+    parser.add_argument(
+        "--votd",
+        action="store_true",
+        help="Activate 'Verse-of-the-Day' messages for this run",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run everything without sending mails. Instead log the messages",
+    )
     return parser.parse_args()
 
 
@@ -39,42 +53,50 @@ def _setup_logging(verbose: bool):
         logging.basicConfig(level=logging.WARNING)
 
 
+# def test_main():
+#     """
+#     Test some stuff
+#     """
+#     from datetime import datetime
+#     from ics import Calendar, Event
+
+#     c = Calendar()
+#     e = Event()
+#     e.summary = "My cool event"
+#     e.description = "A meaningful description"
+#     e.begin = datetime.fromisoformat("2022-06-06T12:05:23+02:00")
+#     e.end = datetime.fromisoformat("2022-06-06T13:05:23+02:00")
+#     c.events.append(e)
+#     c
+# # [<Event 'My cool event' begin:2014-01-01 00:00:00 end:2014-01-01 00:00:01>]
+#     with open("my.ics", "w") as my_file:
+#         my_file.writelines(c.serialize_iter())
+#     # and it's done !
+
+
 def main():  # pragma: no cover
     """
-    The main function executes on commands:
-    `python -m pco_mail` and `$ pco_mail `.
-
-    This is your program's entry point.
-
-    You can change this function to do whatever you want.
-    Examples:
-        * Run a test suite
-        * Run a server
-        * Do some other stuff
-        * Run a command line application (Click, Typer, ArgParse)
-        * List all available tasks
-        * Run an application (Flask, FastAPI, Django, etc.)
+    The main function. Use help to find out more:
+    `python -m pco_mail -h` and `$ pco_mail -h`.
     """
     args = _parse_arguments()
     _setup_logging(args.verbose)
 
-    names, plans, band_leader_ids = access_pco(args.pco_app_id, args.pco_token)
+    pco = PCO(args.pco_app_id, args.pco_token)
 
-    print("Names: ", len(names))
-    print("Plans: ", len(plans))
-    print("Band Leaders: ", len(band_leader_ids))
+    print("Names: ", len(pco.get_names()))
+    # print("Plans: ", len(pco.get_plans()))
+    print("Band Leaders: ", len(pco.get_band_leaders()))
 
-    if not args.dry_run:
-        try:
-            yag = connect_mail(args.gmail_app_pw)
-        except Exception as login_error:
-            logging.error("Yag:Login  Failed to log in")
-            logging.critical(login_error, exc_info=True)
+    mail = Mail("PULS-Kirche-fuer-Schweinfurt", "puls.kirche@gmail.com")
+
+    if args.dry_run:
+        mail.set_dry_run(True)
     else:
-        yag = MailStub()
-        logging.warning("Yag:DryRun  This is a dry run. No mail will be send")
+        mail.establish_connection(args.gmail_app_pw)
 
     # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
 
     if args.votd:
-        send_votd(yag, names)
+        send_messages = mail.send_votd(pco)
+        print("Send " + str(send_messages) + " 'Verse of the Day' messages")
