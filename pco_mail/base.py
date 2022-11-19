@@ -213,12 +213,12 @@ class Mail:
         two_weeks = (
             datetime.now(tz=pytz.UTC) + timedelta(weeks=2) - timedelta(days=1)
         )
-        four_weeks = (
-            datetime.now(tz=pytz.UTC) + timedelta(weeks=4) + timedelta(days=1)
+        three_weeks = (
+            datetime.now(tz=pytz.UTC) + timedelta(weeks=3) + timedelta(days=1)
         )
 
         for plan_id, plan in plans.items():
-            if plan["date"] > two_weeks and plan["date"] < four_weeks:
+            if plan["date"] > two_weeks and plan["date"] < three_weeks:
                 team_members = pco.get_confirmed_team_members(
                     plan["series_id"], plan_id
                 )
