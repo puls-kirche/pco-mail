@@ -39,6 +39,11 @@ def _parse_arguments():
         help="Activate 'Verse-of-the-Day' messages for this run",
     )
     parser.add_argument(
+        "--reminder-celebration",
+        action="store_true",
+        help="Send out reminders for upcoming celebration positions",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Run everything without sending mails. Instead log the messages",
@@ -85,8 +90,6 @@ def main():  # pragma: no cover
     pco = PCO(args.pco_app_id, args.pco_token)
 
     print("Names: ", len(pco.get_names()))
-    # print("Plans: ", len(pco.get_plans()))
-    print("Band Leaders: ", len(pco.get_band_leaders()))
 
     mail = Mail("PULS-Kirche-fuer-Schweinfurt", "puls.kirche@gmail.com")
 
@@ -98,5 +101,11 @@ def main():  # pragma: no cover
     # https://github.com/leemunroe/responsive-html-email-template/blob/master/email-inlined.html
 
     if args.votd:
+        print("Send 'Verse of the Day' messages")
         send_messages = mail.send_votd(pco)
         print("Send " + str(send_messages) + " 'Verse of the Day' messages")
+
+    if args.reminder_celebration:
+        print("Send celebration reminders")
+        send_messages = mail.send_celebration_reminder(pco)
+        print("Send " + str(send_messages) + " celebration reminders")

@@ -352,10 +352,14 @@
                         <img src="https://images.squarespace-cdn.com/content/v1/5d1f29f62a98da00018652f5/acf02c56-270e-4569-a4dd-2a1b4870d0e2/Schwarz+Lato.png?format=1500w" alt="PULS Logo" width="160">
                         <br><br><br>
                         <p>Hi {{ name }},</p>
-                        <p>Dieser Vers ist für dich!</p>
+                        <p>Am {{ date }} wirst du den Gottesdienst mitgestalten 🎉</p>
+                        <p style="margin-left: 20px">Position: <b>{{ team }}</b></p>
                         <br>
-                        <h3 align="center"><i>„{{ verse }}“</i></h3>
-                        <p align="right"><i>{{ location }}</i></p>
+                        <img src="{{ art }}" alt="" width="620">
+                        <br>
+                        <br>
+                        <h2 align="center">{{ series }}</h2>
+                        <h3 align="center"><i>{{ plan }}</i></h3>
                         <br>
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
                           <tbody>
@@ -364,7 +368,7 @@
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                                   <tbody>
                                     <tr>
-                                      <td> <a href="{{ link }}" target="_blank">Open Verse</a> </td>
+                                      <td> <a href="{{ link }}" target="_blank">Gottesdienst im PCO</a> </td>
                                     </tr>
                                   </tbody>
                                 </table>

@@ -2,15 +2,17 @@
 Base functionalities to access pco and send mails
 """
 
+from datetime import datetime, timezone, timedelta
+from functools import lru_cache
 import json
 import logging
 import urllib.request
-from functools import lru_cache
-from requests.auth import HTTPBasicAuth
 from jinja2 import Template
+from requests.auth import HTTPBasicAuth
+import css_inline
+import pytz
 import requests
 import yagmail
-import css_inline
 
 
 # example constant variable
@@ -95,6 +97,48 @@ class PCO:
         """
         return _get_band_leaders(self.get_names())
 
+    def get_team_members(self, series_id: str, plan_id: str):
+        """
+        Get confirmed, pending and declined team members
+        of a specific celebration
+        """
+        team_members = {}
+        res = self.request("/services/v2/series/" + series_id + "/plans/" + plan_id + "/team_members")
+        for person in res["data"]:
+            person_id = person["relationships"]["person"]["data"]["id"]
+            team_members[person_id] = {
+                "name": person["attributes"]["name"],
+                "position": [],
+                "status": [],
+                }
+        for person in res["data"]:
+            person_id = person["relationships"]["person"]["data"]["id"]
+            team_members[person_id]["position"].append(person["attributes"]["team_position_name"])
+            team_members[person_id]["status"].append(person["attributes"]["status"])
+        return team_members
+
+    def get_confirmed_team_members(self, series_id: str, plan_id: str):
+        """
+        Get confirmed team members of a specific celebration
+        """
+        confirmed_team = {}
+        team = self.get_team_members(series_id, plan_id)
+        for person_id, person in team.items():
+            if "C" in person["status"]:
+                confirmed_team[person_id] = person
+        return confirmed_team
+
+    def get_pending_team_members(self, series_id: str, plan_id: str):
+        """
+        Get pending team members of a specific celebration
+        """
+        pending_team = {}
+        team = self.get_team_members(series_id, plan_id)
+        for person_id, person in team.items():
+            if "P" in person["status"]:
+                pending_team[person_id] = person
+        return pending_team
+
 
 class Mail:
     """
@@ -149,6 +193,42 @@ class Mail:
                 send_messages += 1
         return send_messages
 
+    def send_celebration_reminder(self, pco: PCO) -> int:
+        """
+        send reminder mails for upcoming celebrations
+        """
+        send_mails = 0
+        plans = pco.get_plans()
+
+        two_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=2)
+        # three_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=3)
+        four_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=4)
+
+        for plan_id, plan in plans.items():
+            if plan["date"] > two_weeks and plan["date"] < four_weeks:
+                team_members = pco.get_confirmed_team_members(plan["series_id"], plan_id)
+                for person_id, team_person in team_members.items():
+                    person = _get_names(pco)[person_id]
+                    positions = ", ".join(team_person["position"])
+                    plan_date = plan["date"].strftime("%d.%m.%Y")
+                    content = _get_reminder_html_mail(
+                        name=person["first_name"],
+                        date=plan_date,
+                        team_position=positions,
+                        series_title=plan["series"],
+                        plan_title=plan["plan"],
+                        art_link=plan["artwork"],
+                        pco_link=plan["pco_link"],
+                    )
+                    recipient = {pco.get_mail_address(person_id): person["name"]}
+                    self.send(
+                        to=recipient,
+                        subject=positions + " am " + plan_date,
+                        contents=[content],
+                        )
+                    send_mails += 1
+        return send_mails
+
     def _log_send(self, to, subject, contents):
         """
         Function stub to test functionalities
@@ -175,6 +255,35 @@ class Mail:
             + " chars"
         )
         logging.info(message)
+
+
+def _get_reminder_html_mail(name, date, team_position, series_title, art_link, plan_title, pco_link):
+    """
+    get html content to send via mail
+    """
+    reminder_template_file = "assets/reminder_template.html"
+
+    with open(reminder_template_file, encoding="utf-8") as file:
+        template_text = file.read()
+
+    template = Template(template_text)
+    mail_content = template.render(
+        name=name,
+        date=date,
+        team=team_position,
+        series=series_title,
+        art=art_link,
+        plan=plan_title,
+        link=pco_link,
+    )
+    inliner = css_inline.CSSInliner(remove_style_tags=True)
+    inlined_content = inliner.inline(mail_content)
+    entities_content = (
+        inlined_content.encode("ascii", "xmlcharrefreplace")
+        .decode("utf-8")
+        .replace("\n", "")
+    )
+    return entities_content
 
 
 def _get_votd_html_mail(name):
@@ -277,6 +386,7 @@ def _get_plans(pco: PCO) -> dict:
     for nested_array in res["data"]:
         identifier = nested_array["id"]
         series_title = nested_array["attributes"]["title"]
+        series_artwork = nested_array["attributes"]["artwork_original"]
         res = pco.request(
             "/services/v2/series/" + nested_array["id"] + "/plans"
         )
@@ -284,14 +394,18 @@ def _get_plans(pco: PCO) -> dict:
             plan_id = nested_plan["id"]
             plan_title = nested_plan["attributes"]["title"]
             plan_date = nested_plan["attributes"]["sort_date"]
+            plan_date = datetime.fromisoformat(plan_date[:-1]).astimezone(timezone.utc)
+            pco_link = nested_plan["attributes"]["planning_center_url"]
 
             plans[plan_id] = {
                 "series_id": identifier,
                 "series": series_title,
+                "artwork": series_artwork,
                 "date": plan_date,
                 "plan": plan_title,
+                "pco_link": pco_link,
             }
             logging.info(
-                "PCO:Series  %s,  %s,  %s", series_title, plan_title, plan_date
+                "PCO:Plan  %s,  %s,  %s", series_title, plan_title, plan_date
             )
     return plans
