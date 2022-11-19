@@ -8,5 +8,6 @@ types-requests
 yagmail
 jinja2
 css_inline
+pytz
 types-pytz
 # ics
