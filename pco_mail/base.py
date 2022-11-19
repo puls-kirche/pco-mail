@@ -103,18 +103,28 @@ class PCO:
         of a specific celebration
         """
         team_members = {}
-        res = self.request("/services/v2/series/" + series_id + "/plans/" + plan_id + "/team_members")
+        res = self.request(
+            "/services/v2/series/"
+            + series_id
+            + "/plans/"
+            + plan_id
+            + "/team_members"
+        )
         for person in res["data"]:
             person_id = person["relationships"]["person"]["data"]["id"]
             team_members[person_id] = {
                 "name": person["attributes"]["name"],
                 "position": [],
                 "status": [],
-                }
+            }
         for person in res["data"]:
             person_id = person["relationships"]["person"]["data"]["id"]
-            team_members[person_id]["position"].append(person["attributes"]["team_position_name"])
-            team_members[person_id]["status"].append(person["attributes"]["status"])
+            team_members[person_id]["position"].append(
+                person["attributes"]["team_position_name"]
+            )
+            team_members[person_id]["status"].append(
+                person["attributes"]["status"]
+            )
         return team_members
 
     def get_confirmed_team_members(self, series_id: str, plan_id: str):
@@ -200,13 +210,18 @@ class Mail:
         send_mails = 0
         plans = pco.get_plans()
 
-        two_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=2)
-        # three_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=3)
-        four_weeks = datetime.now(tz=pytz.UTC) + timedelta(weeks=4)
+        two_weeks = (
+            datetime.now(tz=pytz.UTC) + timedelta(weeks=2) - timedelta(days=1)
+        )
+        four_weeks = (
+            datetime.now(tz=pytz.UTC) + timedelta(weeks=4) + timedelta(days=1)
+        )
 
         for plan_id, plan in plans.items():
             if plan["date"] > two_weeks and plan["date"] < four_weeks:
-                team_members = pco.get_confirmed_team_members(plan["series_id"], plan_id)
+                team_members = pco.get_confirmed_team_members(
+                    plan["series_id"], plan_id
+                )
                 for person_id, team_person in team_members.items():
                     person = _get_names(pco)[person_id]
                     positions = ", ".join(team_person["position"])
@@ -220,12 +235,14 @@ class Mail:
                         art_link=plan["artwork"],
                         pco_link=plan["pco_link"],
                     )
-                    recipient = {pco.get_mail_address(person_id): person["name"]}
+                    recipient = {
+                        pco.get_mail_address(person_id): person["name"]
+                    }
                     self.send(
                         to=recipient,
                         subject=positions + " am " + plan_date,
                         contents=[content],
-                        )
+                    )
                     send_mails += 1
         return send_mails
 
@@ -257,7 +274,9 @@ class Mail:
         logging.info(message)
 
 
-def _get_reminder_html_mail(name, date, team_position, series_title, art_link, plan_title, pco_link):
+def _get_reminder_html_mail(
+    name, date, team_position, series_title, art_link, plan_title, pco_link
+):
     """
     get html content to send via mail
     """
@@ -394,7 +413,9 @@ def _get_plans(pco: PCO) -> dict:
             plan_id = nested_plan["id"]
             plan_title = nested_plan["attributes"]["title"]
             plan_date = nested_plan["attributes"]["sort_date"]
-            plan_date = datetime.fromisoformat(plan_date[:-1]).astimezone(timezone.utc)
+            plan_date = datetime.fromisoformat(plan_date[:-1]).astimezone(
+                timezone.utc
+            )
             pco_link = nested_plan["attributes"]["planning_center_url"]
 
             plans[plan_id] = {
