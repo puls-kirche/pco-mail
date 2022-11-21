@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from functools import lru_cache
 import json
 import logging
+import re
 import urllib.request
 from jinja2 import Template
 from requests.auth import HTTPBasicAuth
@@ -274,6 +275,17 @@ class Mail:
         logging.info(message)
 
 
+def _preheaderize(text: str) -> str:
+    conversion_map = {
+        ord("ß"): "ss",
+        ord("ä"): "ae",
+        ord("ö"): "oe",
+        ord("ü"): "ue",
+    }
+    noumlaut = text.translate(conversion_map)
+    return re.sub(r"[^a-zA-Z0-9\s\.]+", "", noumlaut)
+
+
 def _get_reminder_html_mail(
     name, date, team_position, series_title, art_link, plan_title, pco_link
 ):
@@ -287,6 +299,9 @@ def _get_reminder_html_mail(
 
     template = Template(template_text)
     mail_content = template.render(
+        preheader=_preheaderize(
+            team_position + " für " + plan_title + " am " + date
+        ),
         name=name,
         date=date,
         team=team_position,
@@ -319,6 +334,7 @@ def _get_votd_html_mail(name):
     template = Template(template_text)
     mail_content = template.render(
         name=name,
+        preheader=_preheaderize(verse["text"]),
         verse=verse["text"],
         location=verse["ref"],
         link=verse["link"],
