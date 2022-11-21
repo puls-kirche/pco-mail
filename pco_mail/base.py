@@ -212,15 +212,15 @@ class Mail:
         send_mails = 0
         plans = pco.get_plans()
 
-        two_weeks = (
+        start_reminder = (
             datetime.now(tz=pytz.UTC) + timedelta(weeks=2) - timedelta(days=1)
         )
-        three_weeks = (
+        end_reminder = (
             datetime.now(tz=pytz.UTC) + timedelta(weeks=3) + timedelta(days=1)
         )
 
         for plan_id, plan in plans.items():
-            if plan["date"] > two_weeks and plan["date"] < three_weeks:
+            if plan["date"] > start_reminder and plan["date"] < end_reminder:
                 team_members = pco.get_confirmed_team_members(
                     plan["series_id"], plan_id
                 )
@@ -281,7 +281,7 @@ def _preheaderize(text: str) -> str:
         ord("ö"): "oe",
         ord("ü"): "ue",
     }
-    untagged = re.sub('<[^<]+?>', '', text)
+    untagged = re.sub("<[^<]+?>", "", text)
     unescaped = html.unescape(untagged)
     noumlaut = unescaped.translate(conversion_map)
     alnumdot = re.sub(r"[^a-zA-Z0-9\s\.\,\!\:]+", "", noumlaut)
