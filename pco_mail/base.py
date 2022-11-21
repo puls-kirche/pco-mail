@@ -4,6 +4,7 @@ Base functionalities to access pco and send mails
 
 from datetime import datetime, timezone, timedelta
 from functools import lru_cache
+import html
 import json
 import logging
 import re
@@ -181,7 +182,7 @@ class Mail:
         self._log_send(to, subject, contents)
         if not self.dry_run:
             if self.yag is not None:
-                self.yag.send(to, subject, contents)
+                self.yag.send(to=to, subject=subject, contents=contents)
             else:
                 logging.error(
                     "Yag:Send:Mail  Establish connection with gmail first"
@@ -194,12 +195,12 @@ class Mail:
         send_messages = 0
         for person_id, person in pco.get_names().items():
             if person["votd"]:
-                ref, html = _get_votd_html_mail(person["first_name"])
-                recipient = {pco.get_mail_address(person_id): person["name"]}
+                ref, content = _get_votd_html_mail(person["first_name"])
+                recipient = [pco.get_mail_address(person_id)]
                 self.send(
                     to=recipient,
                     subject="Verse of the Day - " + ref,
-                    contents=[html],
+                    contents=[content],
                 )
                 send_messages += 1
         return send_messages
@@ -236,9 +237,7 @@ class Mail:
                         art_link=plan["artwork"],
                         pco_link=plan["pco_link"],
                     )
-                    recipient = {
-                        pco.get_mail_address(person_id): person["name"]
-                    }
+                    recipient = [pco.get_mail_address(person_id)]
                     self.send(
                         to=recipient,
                         subject=positions + " am " + plan_date,
@@ -282,8 +281,11 @@ def _preheaderize(text: str) -> str:
         ord("ö"): "oe",
         ord("ü"): "ue",
     }
-    noumlaut = text.translate(conversion_map)
-    return re.sub(r"[^a-zA-Z0-9\s\.]+", "", noumlaut)
+    untagged = re.sub('<[^<]+?>', '', text)
+    unescaped = html.unescape(untagged)
+    noumlaut = unescaped.translate(conversion_map)
+    alnumdot = re.sub(r"[^a-zA-Z0-9\s\.\,\!\:]+", "", noumlaut)
+    return alnumdot
 
 
 def _get_reminder_html_mail(
@@ -300,7 +302,7 @@ def _get_reminder_html_mail(
     template = Template(template_text)
     mail_content = template.render(
         preheader=_preheaderize(
-            team_position + " für " + plan_title + " am " + date
+            team_position + " am " + date + " Thema: " + plan_title
         ),
         name=name,
         date=date,
