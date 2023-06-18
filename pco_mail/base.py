@@ -312,7 +312,7 @@ def _get_reminder_html_mail(
         plan=plan_title,
         link=pco_link,
     )
-    inliner = css_inline.CSSInliner(remove_style_tags=True)
+    inliner = css_inline.CSSInliner()
     inlined_content = inliner.inline(mail_content)
     entities_content = (
         inlined_content.encode("ascii", "xmlcharrefreplace")
@@ -341,7 +341,7 @@ def _get_votd_html_mail(name):
         location=verse["ref"],
         link=verse["link"],
     )
-    inliner = css_inline.CSSInliner(remove_style_tags=True)
+    inliner = css_inline.CSSInliner()
     inlined_content = inliner.inline(mail_content)
     entities_content = (
         inlined_content.encode("ascii", "xmlcharrefreplace")
